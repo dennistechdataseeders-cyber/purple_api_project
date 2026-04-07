@@ -1,6 +1,9 @@
 from pymongo import MongoClient
 
-client = MongoClient("mongodb://localhost:27017/")
+
+MONGO_URI = os.getenv("MONGO_URI")  # from Render environment variables
+
+client = MongoClient(MONGO_URI)
 db = client["purple_db"]
 
 pl_collection = db["pl_data"]      # keywords + pincode
