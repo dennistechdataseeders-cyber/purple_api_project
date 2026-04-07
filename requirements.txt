@@ -3,3 +3,4 @@ djangorestframework
 gunicorn
 pymongo
 dnspython
+python-dotenv
