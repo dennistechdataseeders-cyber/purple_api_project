@@ -1,6 +1,6 @@
 import requests
 
-url = "http://127.0.0.1:8000/pl/"
+url = "https://purple-api-qtj3.onrender.com/pl/"  # ← use your Render URL
 
 headers = {
     "Content-Type": "application/json",
@@ -8,8 +8,8 @@ headers = {
 }
 
 payload = {
-    "keywords": ["iphone", "mobile","shoes"],
-    "pincodes": [560001,560003,5660003]      
+    "keywords": ["iphone", "mobile", "shoes"],
+    "pincodes": [560001, 560003, 5660003]
 }
 
 response = requests.post(url, json=payload, headers=headers)
