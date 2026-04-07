@@ -1,23 +1,18 @@
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-
-from .auth import validate_api_key
 from .mongo import pl_collection, pdp_collection
 from .utils import insert_unique_items
+import uuid
+from datetime import datetime
+from django.http import JsonResponse
+from .mongo import pl_collection, logs_collection
+import json
 
-
-# ---------------- PL ENDPOINT ---------------- #
 
 @api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def pl_endpoint(request):
-
-    # 🔐 Validate API Key
-    auth_error = validate_api_key(request)
-    if auth_error:
-        return auth_error
-
     keywords = request.data.get("keywords", [])
     pincodes = request.data.get("pincodes", [])
 
@@ -34,28 +29,51 @@ def pl_endpoint(request):
         item_field="keyword"
     )
 
+    message = f"{len(inserted)} inserted, {len(duplicates)} duplicates."
+
+    # --------------------------
+    # CREATE JOB LOG ENTRY
+    # --------------------------
+    # generate unique job id
+    while True:
+        job_id = str(uuid.uuid4())[:8]
+        if not logs_collection.find_one({"job_id": job_id}):
+            break
+
+    now = datetime.now()
+
+    log_entry = {
+        "job_id": job_id,
+        "payload": {
+            "keywords": keywords,
+            "pincodes": pincodes
+        },
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M:%S"),
+        "status_code": 200,
+        "message": message
+    }
+
+    # insert into logs collection
+    try:
+        logs_collection.insert_one(log_entry)
+    except Exception as e:
+        print("Log Insert Error:", e)
+
+    # --------------------------
+
     return Response({
         "status": "success",
-        "message": f"{len(inserted)} inserted, {len(duplicates)} duplicates.",
+        "message": message,
         "inserted_count": len(inserted),
         "duplicate_count": len(duplicates),
-        "inserted": inserted,
-        "duplicates": duplicates
+        "job_id": job_id,
+        "log_saved": True
     }, status=200)
-
-
-
-# ---------------- PDP ENDPOINT ---------------- #
 
 @api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def pdp_endpoint(request):
-
-    # 🔐 Validate API Key
-    auth_error = validate_api_key(request)
-    if auth_error:
-        return auth_error
-
     urls = request.data.get("urls", [])
     pincodes = request.data.get("pincodes", [])
 
@@ -72,11 +90,45 @@ def pdp_endpoint(request):
         item_field="url"
     )
 
+    message = f"{len(inserted)} inserted, {len(duplicates)} duplicates."
+
+    # --------------------------
+    # CREATE JOB LOG ENTRY
+    # --------------------------
+
+    # generate unique job id
+    while True:
+        job_id = str(uuid.uuid4())[:8]
+        if not logs_collection.find_one({"job_id": job_id}):
+            break
+
+    now = datetime.now()
+
+    log_entry = {
+        "job_id": job_id,
+        "payload": {
+            "urls": urls,
+            "pincodes": pincodes
+        },
+        "date": now.strftime("%Y-%m-%d"),
+        "time": now.strftime("%H:%M:%S"),
+        "status_code": 200,
+        "message": message
+    }
+
+    # insert into logs collection
+    try:
+        logs_collection.insert_one(log_entry)
+    except Exception as e:
+        print("Log Insert Error:", e)
+
+    # --------------------------
+
     return Response({
         "status": "success",
-        "message": f"{len(inserted)} inserted, {len(duplicates)} duplicates.",
+        "message": message,
         "inserted_count": len(inserted),
         "duplicate_count": len(duplicates),
-        "inserted": inserted,
-        "duplicates": duplicates
+        "job_id": job_id,
+        "log_saved": True
     }, status=200)
