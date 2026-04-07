@@ -8,11 +8,15 @@ from datetime import datetime
 from django.http import JsonResponse
 from .mongo import pl_collection, logs_collection
 import json
+from .auth import validate_api_key
 
 
 @api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def pl_endpoint(request):
+    error = validate_api_key(request)
+    if error:
+        return error
     keywords = request.data.get("keywords", [])
     pincodes = request.data.get("pincodes", [])
 
@@ -74,6 +78,11 @@ def pl_endpoint(request):
 @api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def pdp_endpoint(request):
+
+   
+    error = validate_api_key(request)
+    if error:
+        return error
     urls = request.data.get("urls", [])
     pincodes = request.data.get("pincodes", [])
 

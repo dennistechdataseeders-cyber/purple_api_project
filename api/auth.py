@@ -1,21 +1,18 @@
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import JsonResponse
 
-VALID_API_KEY = "1b3e2a4939ef4c789821fba000123abc"
+VALID_API_KEYS = {
+    "1b3e2a4939ef4c789821fba000123": "default-client"
+}
 
 def validate_api_key(request):
-    api_key = request.headers.get("X-API-KEY")
+    key = request.headers.get("X-API-KEY")
 
-    if not api_key:
-        return Response(
-            {"status": "error", "message": "Missing API Key"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+    if not key or key not in VALID_API_KEYS:
+        return JsonResponse({
+            "status": "error",
+            "message": "Unauthorized: Invalid or missing API key",
+            "status_code": 401
+        }, status=401)
 
-    if api_key != VALID_API_KEY:
-        return Response(
-            {"status": "error", "message": "Invalid API Key"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
+    request.client_name = VALID_API_KEYS[key]  # optional
     return None
