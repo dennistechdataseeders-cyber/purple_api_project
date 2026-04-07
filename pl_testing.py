@@ -1,6 +1,17 @@
-from pymongo import MongoClient
-import os
+import requests
 
-client = MongoClient(os.getenv("mongodb://dennistechdataseeders_db_user:dennis09052003@ac-e63iz9w-shard-00-00.7xmrouw.mongodb.net:27017,ac-e63iz9w-shard-00-01.7xmrouw.mongodb.net:27017,ac-e63iz9w-shard-00-02.7xmrouw.mongodb.net:27017/?ssl=true&replicaSet=atlas-ogrfou-shard-0&authSource=admin&appName=Cluster0"))
-db = client.test
-print(db.list_collection_names())
+url = "https://purple-api-qtj3.onrender.com/pl/"
+
+headers = {
+    "Content-Type": "application/json",
+    "X-API-KEY": "1b3e2a4939ef4c789821fba000123abc"
+}
+
+payload = {
+    "keywords": ["iphone", "mobile", "shoes"],
+    "pincodes": [560001, 560003, 5660003]
+}
+
+response = requests.post(url, json=payload, headers=headers)
+
+print("Status Code:", response.status_code)

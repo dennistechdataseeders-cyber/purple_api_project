@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-
+import os
 
 MONGO_URI = os.getenv("MONGO_URI")  # from Render environment variables
 
